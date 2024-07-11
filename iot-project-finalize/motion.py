@@ -19,7 +19,6 @@ GPIO.setmode(GPIO.BCM)
 # Set up the PIR motion sensor pin as input
 GPIO.setup(motion_sensor_pin, GPIO.IN)
 
-
 def main():
     motion_detect()
 
@@ -31,6 +30,5 @@ def motion_detect():
         print("Quit")
         GPIO.cleanup()  # Reset GPIO settings
  
-
 if __name__ == "__main__":
     main()

@@ -16,7 +16,6 @@ light_sensor_type = config.get('Settings', 'light_sensor_type')
 # Set up GPIO mode and pin number
 GPIO.setmode(GPIO.BCM)
 
-
 # Set up the light sensor pin as input
 GPIO.setup(light_sensor_pin, GPIO.IN)
 

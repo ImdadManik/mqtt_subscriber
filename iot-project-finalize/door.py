@@ -1,4 +1,3 @@
-from operator import truediv
 import RPi.GPIO as GPIO
 import configparser, time
 
@@ -21,8 +20,7 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setup(door_sensor_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 def main(): 
-    door_detections()
-    
+    door_detections()    
 
 def door_detections():
     try:
