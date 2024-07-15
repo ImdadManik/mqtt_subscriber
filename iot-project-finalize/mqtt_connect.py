@@ -19,20 +19,19 @@ client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION1, client_id)
 
 def on_connect(client, userdata, flags, rc): 
     if rc == 0:
-        client.publish(pub_connect_topics, 'connected', retain=retain)       
+        #client.publish(pub_connect_topics, 'connected', retain=retain)       
         print("Connected to MQTT Broker!") 
 
 def connect_to_broker():  
     if not client.is_connected():
-        client.username_pw_set(username, password)   
+        client.username_pw_set(username, password)
         client.on_connect = on_connect
-        client.connect(broker_address, port)
-        client.loop_start()
+        client.connect(broker_address, port) 
     
-def disconnect_from_broker(): 
+def disconnect_from_broker(payload): 
     if client.is_connected():
-        client.publish(pub_connect_topics, 'disconnected', retain=retain)
-        client.loop_stop() 
+        client.publish(pub_connect_topics, payload, retain=retain)
+        client.loop_stop()
         client.disconnect()
         print("Disconnected from MQTT Broker") 
  
