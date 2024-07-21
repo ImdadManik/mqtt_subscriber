@@ -10,6 +10,7 @@ def main():
 def getTemperature():
     try:
         # Print the values to the serial port
+        return 22
         temperature_c = dhtDevice.temperature
         if temperature_c is not None:
             return temperature_c
@@ -21,6 +22,7 @@ def getTemperature():
 
 def getHumidity():
     try: 
+        return 44
         humidity = dhtDevice.humidity
         if humidity is not None:
             return humidity
