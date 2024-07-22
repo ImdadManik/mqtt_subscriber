@@ -28,11 +28,11 @@ namespace MQTT_Subscriber
                         command.Parameters.AddWithValue("@msg_data", emqx_Msgs.MSGDATA);
                         command.Parameters.AddWithValue("@msg_type", emqx_Msgs.MSGTYPE.ToUpper());
                         command.Parameters.AddWithValue("@topics", topics);
-                        
+
                         // Execute the command
                         int rowsAffected = command.ExecuteNonQuery();
                         cLog.WriteLog(rowsAffected.ToString());
-                        cLog.WriteLog(rowsAffected > 0 ? "Data inserted successfully." : "Failed to insert data."); 
+                        cLog.WriteLog(rowsAffected > 0 ? "Data inserted successfully." : "Failed to insert data.");
                     }
                 }
                 catch (Exception ex)
@@ -92,7 +92,7 @@ namespace MQTT_Subscriber
             return "";
         }
 
-        public static string UpdateRetrieveDeviceSettings(string topics, string payload)
+        public static string UpdateRetrieveDeviceSettings(string topics, heart_beat heart_Beat)
         {
             string[] _info = topics.Split('/');
             int rowsAffected = 0;
@@ -103,7 +103,6 @@ namespace MQTT_Subscriber
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
                     string qry = string.Empty;
-
                     try
                     {
                         // Open the connection
@@ -114,9 +113,8 @@ namespace MQTT_Subscriber
                         using (MySqlCommand command = new MySqlCommand(qry, connection))
                         {
                             // Add parameters to the command
-
                             command.Parameters.AddWithValue("@Name", _info[2]);
-                            command.Parameters.AddWithValue("@Connection", payload.Equals("connected") ? 1 : 0);
+                            command.Parameters.AddWithValue("@Connection", heart_Beat.IsConnected.Equals("connected") ? 1 : 0);
 
                             // Execute the command
                             rowsAffected = command.ExecuteNonQuery();
@@ -126,43 +124,7 @@ namespace MQTT_Subscriber
 
                             if (rowsAffected > 0)
                             {
-                                qry = @"SELECT JSON_OBJECT('Id', Id, 'AccountId', AccountId, 'NAME', NAME, 'STATUS', STATUS, 
-                                            'Temp', Temp, 'Door', Door, 'LDR', LDR, 'PIR', PIR, 'LDRAlertFreq', LDRAlertFreq, 
-                                            'MinLDRAlert', MinLDRAlert, 'MinTempAlert', MinTempAlert,
-                                            'TempAlertFreq', TempAlertFreq, 'CONNECTION', CONNECTION) AS json_payload FROM AppDevices 
-                                            WHERE Name = @username";
-
-
-                                // Create a MySqlCommand object with the SQL statement and connection
-                                using (MySqlCommand command1 = new MySqlCommand(qry, connection))
-                                {
-                                    // Add parameter to the command
-                                    command1.Parameters.AddWithValue("@username", _info[2]);
-                                    //Execute the command
-                                    using (MySqlDataReader reader = command1.ExecuteReader())
-                                    {
-                                        // Check if any rows were returned
-                                        if (reader.HasRows)
-                                        {
-                                            // Read the rows and create a list of JSON strings
-                                            List<string> jsonList = new List<string>();
-                                            while (reader.Read())
-                                            {
-                                                jsonList.Add(reader["json_payload"].ToString());
-                                            }
-
-                                            // Convert the list of JSON strings to a single JSON array
-                                            json_return = "[" + string.Join(",", jsonList) + "]";
-                                            
-                                            Console.WriteLine($"{json_return}");
-                                            return json_return;
-                                        }
-                                        else
-                                        {
-                                            Console.WriteLine("No data found for client_id 'imdad'.");
-                                        }
-                                    }
-                                }
+                                json_return = GetSettingsPayload(_info[2], heart_Beat.AccountId, heart_Beat.Id);
                             }
                             return json_return;
                         }
@@ -175,6 +137,62 @@ namespace MQTT_Subscriber
                 }
             }
             return json_return;
+        }
+
+        public static string GetSettingsPayload(string username, string accountId = null, string deviceId = null)
+        {
+            string qry = @"SELECT JSON_OBJECT('Id', d.Id, 'AccountId', d.AccountId, 'NAME', d.NAME, 'DeviceStatus', d.Status, 
+'AccountStatus', a.Status, 'Temp', d.Temp, 'Door', d.Door, 'LDR', d.LDR, 'PIR', d.PIR, 'LDRAlertFreq', d.LDRAlertFreq,
+'MinLDRAlert', d.MinLDRAlert, 'MinTempAlert', d.MinTempAlert, 
+'TempAlertFreq', d.TempAlertFreq, 'CONNECTION', d.CONNECTION) AS json_payload 
+FROM AppDevices d 
+INNER JOIN AppAccounts a ON a.Id = d.AccountId 
+WHERE d.Name = @username ";
+            qry += (deviceId is null || deviceId.Equals("")) ? "" : " AND d.Id = @Id ";
+            qry += accountId is null ? "" : " AND d.AccountId = @AccountId ";
+            qry += "AND d.IsDeleted = 0 ";
+            qry += "AND d.deleterId IS NULL ";
+            qry += "AND d.DeletionTime IS NULL ";
+
+            try
+            {
+                string json_return = "";
+                using (MySqlConnection con = new MySqlConnection(connectionString))
+                {
+                    con.Open();
+                    // Create a MySqlCommand object with the SQL statement and connection
+                    using (MySqlCommand cmd = new MySqlCommand(qry, con))
+                    {
+                        // Add parameter to the command
+                        cmd.Parameters.AddWithValue("@username", username);
+                        if (deviceId is not null && !deviceId.Equals("")) cmd.Parameters.AddWithValue("@Id", deviceId);
+                        if (accountId is not null) cmd.Parameters.AddWithValue("@AccountId", accountId);
+                        //Execute the command
+                        using (MySqlDataReader dataReader = cmd.ExecuteReader())
+                        {
+                            // Check if any rows were returned
+                            if (dataReader.HasRows)
+                            {
+                                while (dataReader.Read())
+                                {
+                                    var data = dataReader["json_payload"].ToString();
+                                    SensorPayload sensorPayload = JsonConvert.DeserializeObject<SensorPayload>(data);
+                                    json_return = JsonConvert.SerializeObject(sensorPayload);
+                                }
+                                return json_return;
+                            }
+                            else
+                                Console.WriteLine($"No data found for client_id '{username}'.");
+                        }
+                    }
+                }
+                return json_return;
+            }
+            catch (global::System.Exception ex)
+            {
+                return ex.Message;
+            }
+
         }
     }
 }

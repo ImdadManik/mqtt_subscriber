@@ -35,7 +35,6 @@ namespace MQTT_Subscriber
             {
                 // Connect to MQTT broker
                 var connectResult = mqttClient.ConnectAsync(options).GetAwaiter().GetResult();
-
                 if (connectResult.ResultCode == MqttClientConnectResultCode.Success)
                 {
                     Console.WriteLine("Connected to MQTT broker successfully.");
@@ -43,8 +42,8 @@ namespace MQTT_Subscriber
                                     .WithTopic(topic)
                                     .WithPayload(_payload)
                                     .WithRetainFlag()
-                                    .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.ExactlyOnce)
-                                    .Build();
+                                    .WithQualityOfServiceLevel(MQTTnet.Protocol.MqttQualityOfServiceLevel.AtMostOnce)
+                                    .Build();  
 
                     mqttClient.PublishAsync(mqttMessage).GetAwaiter().GetResult();
 

@@ -1,5 +1,0 @@
-D:\Fandaqah\mqtt-dotnet-master\MQTT_Subscriber\obj\Debug\net5.0\MQTT_Subscriber.csproj.AssemblyReference.cache
-D:\Fandaqah\mqtt-dotnet-master\MQTT_Subscriber\obj\Debug\net5.0\MQTT_Subscriber.GeneratedMSBuildEditorConfig.editorconfig
-D:\Fandaqah\mqtt-dotnet-master\MQTT_Subscriber\obj\Debug\net5.0\MQTT_Subscriber.AssemblyInfoInputs.cache
-D:\Fandaqah\mqtt-dotnet-master\MQTT_Subscriber\obj\Debug\net5.0\MQTT_Subscriber.AssemblyInfo.cs
-D:\Fandaqah\mqtt-dotnet-master\MQTT_Subscriber\obj\Debug\net5.0\MQTT_Subscriber.csproj.CoreCompileInputs.cache
